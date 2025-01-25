@@ -186,6 +186,7 @@ export class ProtoToGlueConverter {
 
 /**
  * Convenience function to convert Protobuf schema to Glue table schema
+ * This is to mainly be used as part of cdk code.
  * @param protoFile Path to the .proto file
  * @param messageName Optional message name
  * @returns Glue table schema
