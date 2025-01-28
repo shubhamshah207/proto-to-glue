@@ -1,0 +1,30 @@
+name: 'Protobuf to Glue Schema CodeQL config'
+
+disable-default-queries: false
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+  # Custom queries for specific concerns
+  - name: Custom AWS Security Queries
+    uses: ./.github/codeql/custom-queries/aws-security
+  - name: Protocol Buffer Security
+    uses: ./.github/codeql/custom-queries/protobuf-security
+
+paths:
+  - src
+  - test
+paths-ignore:
+  - node_modules
+  - dist
+  - coverage
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+
+query-filters:
+  - exclude:
+      problem.severity:
+        - warning
+        - recommendation
+      tags contain: maintenance
