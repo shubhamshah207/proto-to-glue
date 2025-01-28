@@ -207,8 +207,8 @@ describe('ProtoToGlueConverter', () => {
     it('convertProtoToJSONGlueSchema should work', () => {
       const jsonSchema = convertProtoToJSONGlueSchema(mockProtoFile);
       expect(jsonSchema.length).toBeGreaterThan(0);
-      expect(jsonSchema[0]).toHaveProperty('Name');
-      expect(jsonSchema[0]).toHaveProperty('Type');
+      expect(jsonSchema[0]).toHaveProperty('name');
+      expect(jsonSchema[0]).toHaveProperty('type');
     });
   });
 

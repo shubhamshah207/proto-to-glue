@@ -1,9 +1,9 @@
 import { Column, Schema as glueSchema } from '@aws-cdk/aws-glue-alpha';
 import * as protobuf from 'protobufjs';
 
-export interface GlueJSONColumn {
-  Name: string;
-  Type: string;
+export interface IGlueJsonSchema {
+  name: string;
+  type: string;
 }
 
 // Utility type guard to safely check object keys
@@ -42,6 +42,7 @@ export class ProtoToGlueConverter {
     try {
       // Load the proto file
       const root = new protobuf.Root().loadSync(protoFile, { keepCase: true });
+
       return root;
     } catch (error: unknown) {
       console.error(`Failed to load proto file`, error);
@@ -56,6 +57,7 @@ export class ProtoToGlueConverter {
    */
   private _resolveRepeatedField(field: protobuf.Field): Column {
     field.resolve();
+
     return {
       type: glueSchema.array(this._convertNonRepeatedField(field).type),
       name: field.name,
@@ -69,7 +71,6 @@ export class ProtoToGlueConverter {
    */
   private _convertNonRepeatedField(field: protobuf.Field): Column {
     field.resolve();
-    const isRepeated = field.repeated;
     const fieldType = field.resolvedType ?? field.type;
 
     // Handle message types (nested structures)
@@ -114,6 +115,7 @@ export class ProtoToGlueConverter {
     const circularFields = Object.values(messageType.fields).filter(
       (s) => s.resolvedType === referenceMessageType
     );
+
     if (circularFields.length > 0) {
       throw new Error(
         `Circular reference detected for message type: ${referenceMessageType.fullName}`
@@ -134,6 +136,7 @@ export class ProtoToGlueConverter {
    */
   private _convertField(field: protobuf.Field): Column {
     field.resolve();
+
     return field.repeated
       ? this._resolveRepeatedField(field)
       : this._convertNonRepeatedField(field);
@@ -155,6 +158,7 @@ export class ProtoToGlueConverter {
     const columns = Object.values(messageType.fields).map((field) => this._convertField(field));
 
     this._processedMessages[messageType.fullName] = columns;
+
     return columns;
   }
 
@@ -168,9 +172,10 @@ export class ProtoToGlueConverter {
     try {
       const root = this._loadProtoFile(protoFile).resolveAll();
 
-      const targetType = messageName
-        ? root.lookupType(messageName)
-        : root.nestedArray.find((nested) => nested instanceof protobuf.Type);
+      const targetType =
+        messageName !== undefined
+          ? root.lookupType(messageName)
+          : root.nestedArray.find((nested) => nested instanceof protobuf.Type);
 
       if (!targetType) {
         throw new Error(`Message type not found in proto file`);
@@ -191,7 +196,7 @@ export class ProtoToGlueConverter {
  * @param messageName Optional message name
  * @returns Glue table schema
  */
-export function convertProtoToGlueSchema(protoFile: string, messageName?: string) {
+export function convertProtoToGlueSchema(protoFile: string, messageName?: string): Column[] {
   return new ProtoToGlueConverter().generateGlueSchema(protoFile, messageName);
 }
 
@@ -204,9 +209,9 @@ export function convertProtoToGlueSchema(protoFile: string, messageName?: string
 export function convertProtoToJSONGlueSchema(
   protoFile: string,
   messageName?: string
-): GlueJSONColumn[] {
+): IGlueJsonSchema[] {
   return convertProtoToGlueSchema(protoFile, messageName).map((c) => ({
-    Type: c.type.inputString,
-    Name: c.name,
+    type: c.type.inputString,
+    name: c.name,
   }));
 }
