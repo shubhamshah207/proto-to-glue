@@ -1,6 +1,6 @@
 {
   "name": "proto-to-glue",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Convert Protobuf schemas to AWS Glue table schemas",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
