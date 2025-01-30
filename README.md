@@ -5,6 +5,8 @@ Convert Protocol Buffer schemas to AWS Glue catalog schemas with ease. This pack
 [![npm version](https://img.shields.io/npm/v/proto-to-glue.svg)](https://www.npmjs.com/package/proto-to-glue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Coverage Status](https://coveralls.io/repos/github/shubhamshah207/proto-to-glue/badge.svg?branch=main)](https://coveralls.io/github/shubhamshah207/proto-to-glue?branch=main)
+[![example workflow](https://github.com/shubhamshah207/proto-to-glue/actions/workflows/codeql.yml/badge.svg)](https://github.com/shubhamshah207/proto-to-glue/actions/workflows/codeql.yml)
+
 
 
 
