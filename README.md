@@ -29,7 +29,7 @@ A TypeScript library designed to simplify the process of converting Protobuf (Pr
 Install the library using npm:
 
 ```bash
-npm install @aws-cdk/aws-glue-alpha protobufjs
+npm install proto-to-glue
 ```
 
 ---
