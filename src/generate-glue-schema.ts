@@ -1,4 +1,4 @@
-import { Column, Schema as glueSchema } from '@aws-cdk/aws-glue-alpha';
+import { Column, Schema as glueSchema, Type } from '@aws-cdk/aws-glue-alpha';
 import * as protobuf from 'protobufjs';
 
 export interface IGlueJsonSchema {
@@ -25,12 +25,24 @@ export const DEFAULT_TYPE_MAPPING = {
   enum: glueSchema.STRING,
 };
 
+export interface IProtoToGlueConfig {
+  // Optional type mapping for Protobuf to Glue schema conversion
+  typeMapping?: Record<string, Type>;
+}
+
 export class ProtoToGlueConverter {
   // Cache for processed message types to prevent redundant processing
   private readonly _processedMessages: Record<string, Column[]>;
+  private readonly config: Required<IProtoToGlueConfig>;
 
-  constructor() {
+  constructor(config: IProtoToGlueConfig = {}) {
     this._processedMessages = {};
+    this.config = {
+      typeMapping: {
+        ...DEFAULT_TYPE_MAPPING,
+        ...config.typeMapping,
+      },
+    };
   }
 
   /**
@@ -85,15 +97,15 @@ export class ProtoToGlueConverter {
     if (fieldType instanceof protobuf.Enum) {
       return {
         name: field.name,
-        type: glueSchema.STRING,
+        type: this.config.typeMapping.enum,
       };
     }
 
     // Map basic types
-    if (assertKey(DEFAULT_TYPE_MAPPING, fieldType)) {
+    if (assertKey(this.config.typeMapping, fieldType)) {
       return {
         name: field.name,
-        type: DEFAULT_TYPE_MAPPING[fieldType],
+        type: this.config.typeMapping[fieldType],
       };
     }
 
@@ -194,23 +206,30 @@ export class ProtoToGlueConverter {
  * This is to mainly be used as part of cdk code.
  * @param protoFile Path to the .proto file
  * @param messageName Optional message name
+ * @param config Optional configuration for type mapping
  * @returns Glue table schema
  */
-export function convertProtoToGlueSchema(protoFile: string, messageName?: string): Column[] {
-  return new ProtoToGlueConverter().generateGlueSchema(protoFile, messageName);
+export function convertProtoToGlueSchema(
+  protoFile: string,
+  messageName?: string,
+  config?: IProtoToGlueConfig
+): Column[] {
+  return new ProtoToGlueConverter(config).generateGlueSchema(protoFile, messageName);
 }
 
 /**
  * Converts Protobuf schema to Glue table schema in JSON format
  * @param protoFile Path to the .proto file
  * @param messageName Optional message name
+ * @param config Optional configuration for type mapping
  * @returns Glue table schema as JSON
  */
 export function convertProtoToJSONGlueSchema(
   protoFile: string,
-  messageName?: string
+  messageName?: string,
+  config?: IProtoToGlueConfig
 ): IGlueJsonSchema[] {
-  return convertProtoToGlueSchema(protoFile, messageName).map((c) => ({
+  return convertProtoToGlueSchema(protoFile, messageName, config).map((c) => ({
     type: c.type.inputString,
     name: c.name,
   }));

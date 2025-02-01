@@ -1,5 +1,6 @@
 import * as protobuf from 'protobufjs';
 import {
+  IProtoToGlueConfig,
   ProtoToGlueConverter,
   convertProtoToGlueSchema,
   convertProtoToJSONGlueSchema,
@@ -64,6 +65,39 @@ describe('ProtoToGlueConverter', () => {
     if (fs.existsSync(mockProtoFile)) {
       fs.unlinkSync(mockProtoFile);
     }
+  });
+
+  describe('IProtoToGlueConfig', () => {
+    it('should handle custom type mappings', () => {
+      const config: IProtoToGlueConfig = {
+        typeMapping: {
+          int32: glueSchema.BIG_INT,
+        },
+      };
+
+      const customConverter = new ProtoToGlueConverter(config);
+      const schema = customConverter.generateGlueSchema(mockProtoFile, 'TestMessage');
+      console.log(schema);
+      expect(schema.find((c) => c.name === 'age')).toMatchObject({
+        name: 'age',
+        type: glueSchema.BIG_INT,
+      });
+    });
+    it('should handle custom type mappings for enum as well', () => {
+      const config: IProtoToGlueConfig = {
+        typeMapping: {
+          enum: glueSchema.INTEGER,
+        },
+      };
+
+      const customConverter = new ProtoToGlueConverter(config);
+      const schema = customConverter.generateGlueSchema(mockProtoFile, 'TestMessage');
+      console.log(schema);
+      expect(schema.find((c) => c.name === 'local_status')).toMatchObject({
+        name: 'local_status',
+        type: glueSchema.INTEGER,
+      });
+    });
   });
 
   describe('_loadProtoFile', () => {
