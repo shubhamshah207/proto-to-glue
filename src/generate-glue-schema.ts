@@ -177,17 +177,14 @@ export class ProtoToGlueConverter {
   /**
    * Generates a Glue table schema from a Protobuf schema
    * @param protoFile Path to the .proto file
-   * @param messageName Optional specific message name to convert
+   * @param messageName specific message name to convert
    * @returns Glue table schema columns
    */
-  public generateGlueSchema(protoFile: string, messageName?: string): Column[] {
+  public generateGlueSchema(protoFile: string, messageName: string): Column[] {
     try {
       const root = this._loadProtoFile(protoFile).resolveAll();
 
-      const targetType =
-        messageName !== undefined
-          ? root.lookupType(messageName)
-          : root.nestedArray.find((nested) => nested instanceof protobuf.Type);
+      const targetType = root.lookupType(messageName);
 
       if (!targetType) {
         throw new Error(`Message type not found in proto file`);
@@ -205,13 +202,13 @@ export class ProtoToGlueConverter {
  * Convenience function to convert Protobuf schema to Glue table schema
  * This is to mainly be used as part of cdk code.
  * @param protoFile Path to the .proto file
- * @param messageName Optional message name
+ * @param messageName message name
  * @param config Optional configuration for type mapping
  * @returns Glue table schema
  */
 export function convertProtoToGlueSchema(
   protoFile: string,
-  messageName?: string,
+  messageName: string,
   config?: IProtoToGlueConfig
 ): Column[] {
   return new ProtoToGlueConverter(config).generateGlueSchema(protoFile, messageName);
@@ -220,13 +217,13 @@ export function convertProtoToGlueSchema(
 /**
  * Converts Protobuf schema to Glue table schema in JSON format
  * @param protoFile Path to the .proto file
- * @param messageName Optional message name
+ * @param messageName message name
  * @param config Optional configuration for type mapping
  * @returns Glue table schema as JSON
  */
 export function convertProtoToJSONGlueSchema(
   protoFile: string,
-  messageName?: string,
+  messageName: string,
   config?: IProtoToGlueConfig
 ): IGlueJsonSchema[] {
   return convertProtoToGlueSchema(protoFile, messageName, config).map((c) => ({

@@ -185,7 +185,7 @@ describe('ProtoToGlueConverter', () => {
 
   describe('generateGlueSchema', () => {
     it('should generate schema for default message', () => {
-      const schema = converter.generateGlueSchema(mockProtoFile);
+      const schema = converter.generateGlueSchema(mockProtoFile, 'TestMessage');
       expect(schema.length).toBeGreaterThan(0);
       expect(schema[0]).toHaveProperty('name');
       expect(schema[0]).toHaveProperty('type');
@@ -214,9 +214,7 @@ describe('ProtoToGlueConverter', () => {
       try {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-        expect(() => converter.generateGlueSchema(emptyProtoFile)).toThrow(
-          'Message type not found in proto file'
-        );
+        expect(() => converter.generateGlueSchema(emptyProtoFile, 'TestMessage')).toThrow();
 
         consoleErrorSpy.mockRestore();
       } finally {
@@ -234,12 +232,12 @@ describe('ProtoToGlueConverter', () => {
 
   describe('Convenience Functions', () => {
     it('convertProtoToGlueSchema should work', () => {
-      const schema = convertProtoToGlueSchema(mockProtoFile);
+      const schema = convertProtoToGlueSchema(mockProtoFile, 'TestMessage');
       expect(schema.length).toBeGreaterThan(0);
     });
 
     it('convertProtoToJSONGlueSchema should work', () => {
-      const jsonSchema = convertProtoToJSONGlueSchema(mockProtoFile);
+      const jsonSchema = convertProtoToJSONGlueSchema(mockProtoFile, 'TestMessage');
       expect(jsonSchema.length).toBeGreaterThan(0);
       expect(jsonSchema[0]).toHaveProperty('name');
       expect(jsonSchema[0]).toHaveProperty('type');
@@ -260,7 +258,7 @@ describe('ProtoToGlueConverter', () => {
     `
       );
       try {
-        expect(() => converter.generateGlueSchema(circularProtoFile)).toThrow(
+        expect(() => converter.generateGlueSchema(circularProtoFile, 'CircularMessage')).toThrow(
           'Circular reference detected for message type: .CircularMessage'
         );
       } finally {
@@ -308,19 +306,19 @@ describe('ProtoToGlueConverter', () => {
 
       // Write a mock proto file with multiple references to the same nested message type
       const mockProtoContent = `
-      syntax = "proto3";
+        syntax = "proto3";
 
-      message ParentMessage {
-        NestedMessage nested_1 = 1;
-        NestedMessage nested_2 = 2;
-        NestedMessage nested_3 = 3;
-      }
+        message ParentMessage {
+          NestedMessage nested_1 = 1;
+          NestedMessage nested_2 = 2;
+          NestedMessage nested_3 = 3;
+        }
 
-      message NestedMessage {
-        string field1 = 1;
-        int32 field2 = 2;
-      }
-    `;
+        message NestedMessage {
+          string field1 = 1;
+          int32 field2 = 2;
+        }
+      `;
 
       // Use filesystem write method to create the mock proto file
       fs.writeFileSync(memoryTestProtoFile, mockProtoContent);
@@ -335,11 +333,8 @@ describe('ProtoToGlueConverter', () => {
 
     it('should memoize message types with multiple references', () => {
       // Generate Glue schema for ParentMessage
-      const generatedGlueSchema = converter.generateGlueSchema(
-        memoryTestProtoFile,
-        'ParentMessage'
-      );
-
+      const generatedGlueSchema = converter.generateGlueSchema(memoryTestProtoFile, 'User');
+      console.log(generatedGlueSchema);
       // Verify the structure of the generated schema
       expect(
         typeof generatedGlueSchema == 'object' && Array.isArray(generatedGlueSchema)
